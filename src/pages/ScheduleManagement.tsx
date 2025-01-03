@@ -131,12 +131,14 @@ const ScheduleManagement = () => {
   const handleSaveEdit = () => {
     if (currentEdit) {
       if (currentEdit.id) {
+        //패치 API 작성예정
         setSchedules((prev) =>
           prev.map((schedule) =>
             schedule.id === currentEdit.id ? currentEdit : schedule,
           ),
         );
       } else {
+        //Post통신으로 신규 스케줄 작성예정
         setSchedules((prev) => [
           ...prev,
           { ...currentEdit, id: (prev.length + 1).toString() },
