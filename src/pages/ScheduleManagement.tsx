@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from '@emotion/styled';
 import {
   Box,
@@ -14,6 +14,7 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
+import axios, { AxiosError } from 'axios';
 
 interface ScheduleType {
   id: string;
@@ -78,7 +79,7 @@ const ScheduleManagement = () => {
       date: '2025-01-05',
       time: '14:00',
       personInCharge: '김철수',
-      status: '예정',
+      status: '신규',
       memo: '서울 사무실에서 진행',
     },
     {
@@ -99,11 +100,27 @@ const ScheduleManagement = () => {
     },
   ]);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get('http://localhost:3000/schedule');
+        setSchedules(response.data);
+        console.log(response.data);
+      } catch (error) {
+        console.error('Error fetching customers:', error);
+      }
+    };
+    fetchData();
+  }, []);
+
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
   const [currentEdit, setCurrentEdit] = useState<ScheduleType | null>(null);
 
   const handleEventClick = (clickInfo: any) => {
-    const schedule = schedules.find((sched) => sched.id === clickInfo.event.id);
+    const schedule = schedules.find(
+      (sched) => String(sched.id) === clickInfo.event.id,
+    );
+
     if (schedule) {
       setCurrentEdit(schedule);
       setIsEditModalOpen(true);
@@ -117,7 +134,7 @@ const ScheduleManagement = () => {
       date: selectInfo.startStr.split('T')[0],
       time: selectInfo.startStr.split('T')[1] || '',
       personInCharge: '',
-      status: '예정',
+      status: '신규',
       memo: '',
     });
     setIsEditModalOpen(true);
@@ -128,17 +145,63 @@ const ScheduleManagement = () => {
     setCurrentEdit(null);
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (currentEdit) {
       if (currentEdit.id) {
-        //패치 API 작성예정
+        try {
+          const { id, ...rest } = currentEdit;
+          const response = await axios.patch(
+            `http://localhost:3000/schedule/${id}`,
+            rest,
+          );
+        } catch (error) {
+          if (axios.isAxiosError(error)) {
+            // Axios 에러인 경우
+            console.error(
+              'Error fetching customers:',
+              error.response?.data?.message ||
+                error.message ||
+                'An unknown error occurred',
+            );
+          } else {
+            // 일반 에러인 경우
+            console.error(
+              'An unexpected error occurred:',
+              (error as Error).message,
+            );
+          }
+        }
         setSchedules((prev) =>
           prev.map((schedule) =>
             schedule.id === currentEdit.id ? currentEdit : schedule,
           ),
         );
       } else {
-        //Post통신으로 신규 스케줄 작성예정
+        try {
+          const { id, ...rest } = currentEdit;
+          const response = await axios.post(
+            'http://localhost:3000/schedule',
+            rest,
+          );
+
+          console.log(response.data);
+        } catch (error) {
+          if (axios.isAxiosError(error)) {
+            // Axios 에러인 경우
+            console.error(
+              'Error fetching customers:',
+              error.response?.data?.message ||
+                error.message ||
+                'An unknown error occurred',
+            );
+          } else {
+            // 일반 에러인 경우
+            console.error(
+              'An unexpected error occurred:',
+              (error as Error).message,
+            );
+          }
+        }
         setSchedules((prev) => [
           ...prev,
           { ...currentEdit, id: (prev.length + 1).toString() },
@@ -153,11 +216,13 @@ const ScheduleManagement = () => {
     title: schedule.title,
     start: `${schedule.date}T${schedule.time}`,
     color:
-      schedule.status === '예정'
+      schedule.status === '신규'
         ? '#007bff'
         : schedule.status === '진행 중'
         ? '#ffc107'
-        : '#28a745',
+        : schedule.status === '완료'
+        ? '#28a745'
+        : '#dc3545',
   }));
 
   return (
@@ -257,16 +322,17 @@ const ScheduleManagement = () => {
           />
           <Select
             fullWidth
-            value={currentEdit?.status || '예정'}
+            value={currentEdit?.status || '신규'}
             onChange={(e) =>
               setCurrentEdit((prev) =>
                 prev ? { ...prev, status: e.target.value } : null,
               )
             }
           >
-            <MenuItem value="예정">예정</MenuItem>
+            <MenuItem value="신규">신규</MenuItem>
             <MenuItem value="진행 중">진행 중</MenuItem>
             <MenuItem value="완료">완료</MenuItem>
+            <MenuItem value="취소">취소</MenuItem>
           </Select>
           <TextField
             fullWidth

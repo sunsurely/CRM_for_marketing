@@ -62,7 +62,6 @@ const CustomersPage = () => {
       try {
         const response = await axios.get('http://localhost:3000/customer');
         setCustomers(response.data);
-        console.log(response.data);
       } catch (error) {
         console.error('Error fetching customers:', error);
       }

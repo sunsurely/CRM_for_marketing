@@ -13,8 +13,10 @@ import {
   Button,
   Modal,
   Typography,
+  TextField,
 } from '@mui/material';
 import CustomersModal, { ModalContentProps } from 'components/CustomersModal';
+import axios from 'axios';
 
 export interface CustomerType {
   firstName: string;
@@ -69,6 +71,7 @@ const ActionButton = styled(Button)`
     background-color: #c9302c;
   }
 `;
+
 const PaginatedTable = ({ customers, setCustomers }: PaginatedTableProps) => {
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
@@ -78,6 +81,16 @@ const PaginatedTable = ({ customers, setCustomers }: PaginatedTableProps) => {
     null,
   );
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
+
+  const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
+  const [newCustomer, setNewCustomer] = useState<Partial<CustomerType>>({
+    firstName: '',
+    lastName: '',
+    jobTitle: '',
+    company: '',
+    location: '',
+    email: '',
+  });
 
   const handleChangePage = (
     event: React.MouseEvent<HTMLButtonElement> | null,
@@ -123,6 +136,28 @@ const PaginatedTable = ({ customers, setCustomers }: PaginatedTableProps) => {
           : customer,
       ),
     );
+  };
+
+  const handleAddCustomer = async () => {
+    try {
+      const response = await axios.post(
+        'http://localhost:3000/customer',
+        newCustomer,
+      );
+      alert('새로운 고객을 추가했습니다.');
+    } catch (error) {
+      console.error('Error:', error);
+      alert('An error occurred while sending your message.');
+    }
+    setNewCustomer({
+      firstName: '',
+      lastName: '',
+      jobTitle: '',
+      company: '',
+      location: '',
+      email: '',
+    });
+    setIsAddModalOpen(false);
   };
 
   const handleDeleteSelected = () => {
@@ -230,15 +265,143 @@ const PaginatedTable = ({ customers, setCustomers }: PaginatedTableProps) => {
               onPageChange={handleChangePage}
               onRowsPerPageChange={handleChangeRowsPerPage}
             />
-            <ActionButton
-              onClick={openDeleteModal}
-              disabled={selectedRows.size === 0}
-            >
-              삭제
-            </ActionButton>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => setIsAddModalOpen(true)}
+              >
+                고객 추가
+              </Button>
+              <ActionButton
+                onClick={openDeleteModal}
+                disabled={selectedRows.size === 0}
+              >
+                삭제
+              </ActionButton>
+            </Box>
           </Box>
         </StyledTableContainer>
       </Container>
+
+      {/* 고객 추가 모달 */}
+      <Modal
+        open={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        aria-labelledby="add-customer-modal"
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            bgcolor: 'background.paper',
+            borderRadius: 2,
+            boxShadow: 24,
+            p: 4,
+            minWidth: 400,
+          }}
+        >
+          <Typography id="add-customer-modal" variant="h6" mb={2}>
+            고객 추가
+          </Typography>
+          <TextField
+            fullWidth
+            label="First Name"
+            value={newCustomer.firstName || ''}
+            onChange={(e) =>
+              setNewCustomer((prev) => ({
+                ...prev,
+                firstName: e.target.value,
+              }))
+            }
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Last Name"
+            value={newCustomer.lastName || ''}
+            onChange={(e) =>
+              setNewCustomer((prev) => ({
+                ...prev,
+                lastName: e.target.value,
+              }))
+            }
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Job Title"
+            value={newCustomer.jobTitle || ''}
+            onChange={(e) =>
+              setNewCustomer((prev) => ({
+                ...prev,
+                jobTitle: e.target.value,
+              }))
+            }
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Company"
+            value={newCustomer.company || ''}
+            onChange={(e) =>
+              setNewCustomer((prev) => ({
+                ...prev,
+                company: e.target.value,
+              }))
+            }
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Location"
+            value={newCustomer.location || ''}
+            onChange={(e) =>
+              setNewCustomer((prev) => ({
+                ...prev,
+                location: e.target.value,
+              }))
+            }
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Email"
+            value={newCustomer.email || ''}
+            onChange={(e) =>
+              setNewCustomer((prev) => ({
+                ...prev,
+                email: e.target.value,
+              }))
+            }
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Comment"
+            value={newCustomer.comment || ''}
+            onChange={(e) =>
+              setNewCustomer((prev) => ({
+                ...prev,
+                comment: e.target.value,
+              }))
+            }
+            margin="normal"
+          />
+          <Box
+            sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 2 }}
+          >
+            <Button variant="contained" onClick={handleAddCustomer}>
+              추가
+            </Button>
+            <Button variant="outlined" onClick={() => setIsAddModalOpen(false)}>
+              취소
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
 
       {/* 삭제 확인 모달 */}
       <Modal
