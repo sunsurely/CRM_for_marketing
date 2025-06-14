@@ -56,7 +56,7 @@ const CustomersPage = () => {
     // const token = Cookies.get('jwt');
     // if (!token) {
     //   navigate('signin');
-    // }
+    // }//
 
     const fetchData = async () => {
       try {
