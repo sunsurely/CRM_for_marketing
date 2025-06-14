@@ -184,7 +184,7 @@ const ScheduleManagement = () => {
             rest,
           );
 
-          console.log(response.data);
+      
         } catch (error) {
           if (axios.isAxiosError(error)) {
             // Axios 에러인 경우

@@ -53,10 +53,10 @@ const CustomersPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = Cookies.get('jwt');
-    if (!token) {
-      navigate('signin');
-    }
+    // const token = Cookies.get('jwt');
+    // if (!token) {
+    //   navigate('signin');
+    // }
 
     const fetchData = async () => {
       try {
